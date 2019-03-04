@@ -22,8 +22,7 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
     tr = timee #60 # Temporal aggregation [minutes] you can try with 10, 30, 60min for example
     #####################
     
-    #outputs: plots of lidar signal, dep. ratio and mean number of acquisitions per minute.
-    
+    #outputs: plots of lidar signal, dep. ratio and mean number of acquisitions per minute.  
         
     font = {'family'    :   'serif',
             'weight'    :   'normal',
@@ -42,16 +41,7 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
             TDAT0 = np.array(data0[9:2633],dtype=float)#90% parallel
             TDAT1 = np.array(data0[2634:5258],dtype=float)#10% parallel
             TDAT2 = np.array(data0[5259:7883],dtype=float)#Perpendicular                
-                         
-            #simple background correction  
-            #print "A", np.nanmean(TDAT1[(1300):])   
-            
-            #TDAT0 = np.array(TDAT0)-np.nanmean(TDAT0[(2624-150):]) #2624-150
-            #TDAT1 = np.array(TDAT1)-np.nanmean(TDAT1[(2624-150):])   
-            #TDAT2 = np.array(TDAT2)-np.nanmean(TDAT2[(2624-150):])
-            #print np.shape(TDAT0)
-            #print np.nanpercentile(TDAT1[(1300):],1)
-            #print "B", np.nanmean(TDAT0[(2624-150):])   
+                           
             return [TDAT0[1:],TDAT1[1:],TDAT2[1:]]
     TZoff = 1 #Time Zone offset original data is in UTC+1 [h] do not change for DDU
     
@@ -65,6 +55,8 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
     year = date[0:4]
     month = date[5:7]
     day = date[8:10]
+    
+    npt = [] # number of profiles of each time steps, each profile is the sum of 10*7000 shoots
     
     #path=path+year+"/"
     
@@ -124,7 +116,8 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
                 mat_10par[t_count,:] = par10sum/npix         
                 mat_per[t_count,:] = persum/npix   
                 mat_npix[t_count] = npix    
-    #        print t_count  
+
+            npt.append(npix)
             t_count = t_count + 1
       
                  
@@ -168,35 +161,28 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
                 mat_10par[t_count,:] = par10sum/npix      
                 mat_per[t_count,:] = persum/npix  
                 mat_npix[t_count] = npix
-    #        print t_count      
+
+            npt.append(npix)
             t_count = t_count + 1        
                
-    ranges = np.linspace(3.8373,10011.6291,2623)
-    
-#    aac=[]
-#    aacper=[]
-#    aac1=[]
-#    aac2=[]
-#    aac3=[]
+    #ranges = np.linspace(3.8373,10011.6291,2623)
+    ranges = np.linspace(0,10011.6291/1000.,2624)[1:]
+
     new_res=space
     newbins=(np.shape(mat_90par)[1]-1)/new_res #23
     
     matPar90 = np.zeros(shape=[np.shape(mat_90par)[0],newbins])
     matPar10 = np.zeros(shape=[np.shape(mat_90par)[0],newbins])
     matPer = np.zeros(shape=[np.shape(mat_90par)[0],newbins])
-#    matParc = np.zeros(shape=[np.shape(mat_90par)[0],newbins])
-#    matPerc = np.zeros(shape=[np.shape(mat_90par)[0],newbins])
+
     
-    for htime in range(0,np.shape(mat_90par)[0]):#np.linspace(1,24,24*2-1):
+    for htime in range(0,np.shape(mat_90par)[0]):
         
         import copy
         
         VPL90 = copy.copy((mat_90par)[htime,:])#[int(htime*(nt-1)/24),:])
         VPL10 = copy.copy((mat_10par)[htime,:])#[int(htime*(nt-1)/24),:])
         VPLper = copy.copy((mat_per)[htime,:])#[int(htime*(nt-1)/24),:])
-        
-        #VPL90=(VPL90-np.nanmean(VPL90[-150:]))
-        #VPLper=(VPLper-np.nanmean(VPLper[-150:]))
             
         VPL90_2=np.zeros(shape=newbins)
         VPL10_2=np.zeros(shape=newbins)
@@ -208,18 +194,12 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
             VPL90_2[i] = np.nanmean(VPL90[i*new_res:(i+1)*new_res])
             VPL10_2[i] = np.nanmean(VPL10[i*new_res:(i+1)*new_res])
             VPLper_2[i] = np.nanmean(VPLper[i*new_res:(i+1)*new_res])
-            #if i < 18: print i,ranges2[i]
             
         P=copy.copy(VPL90_2)
         Pper=copy.copy(VPLper_2)
         r=copy.copy(ranges2)
-        #pylab.plot(P)
+
         matPar90[htime,:]=P
         matPar10[htime,:]=copy.copy(VPL10_2)    
-        matPer[htime,:]=Pper
-            
-    return[matPar90,matPar10,matPer, r]                
-
-#mat_25022017 =  Lidar_space_time(date = "2017.02.25",space = 13, timee = 60)       
-#mat_04102018 =  Lidar_space_time(date = "2018.10.04",space = 13, timee = 60)       
-#mat_26022017 =  Lidar_space_time(date = "2017.02.26",space = 13, timee = 60)       
+        matPer[htime,:]=Pper    
+    return[matPar90,matPar10,matPer, r, np.array(npt)]           
