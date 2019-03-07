@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 25 11:30:00 2018
-
-@author: Claudio Duran-Alarcon
-"""
 import time, os, glob, pylab
 from calendar import timegm
 import numpy as np
@@ -50,13 +44,11 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
     mat_90par = np.zeros(shape=(nt,2623))
     mat_10par = np.zeros(shape=(nt,2623))
     mat_per = np.zeros(shape=(nt,2623))
-    mat_npix= np.zeros(shape=(nt))
+    mat_npix= np.zeros(shape=(nt)) # number of profiles of each time steps, each profile is the sum of 10*7000 shoots
     
     year = date[0:4]
     month = date[5:7]
     day = date[8:10]
-    
-    npt = [] # number of profiles of each time steps, each profile is the sum of 10*7000 shoots
     
     #path=path+year+"/"
     
@@ -117,7 +109,6 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
                 mat_per[t_count,:] = persum/npix   
                 mat_npix[t_count] = npix    
 
-            npt.append(npix)
             t_count = t_count + 1
       
                  
@@ -162,7 +153,6 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
                 mat_per[t_count,:] = persum/npix  
                 mat_npix[t_count] = npix
 
-            npt.append(npix)
             t_count = t_count + 1        
                
     #ranges = np.linspace(3.8373,10011.6291,2623)
@@ -202,4 +192,4 @@ def Lidar_space_time(date = "2017.02.04",space = 13, timee = 60,path = "C:/Users
         matPar90[htime,:]=P
         matPar10[htime,:]=copy.copy(VPL10_2)    
         matPer[htime,:]=Pper    
-    return[matPar90,matPar10,matPer, r, np.array(npt)]           
+    return[matPar90,matPar10,matPer, r, mat_npix]
