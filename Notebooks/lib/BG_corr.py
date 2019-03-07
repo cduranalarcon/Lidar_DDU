@@ -22,15 +22,15 @@ def BG_corr(P,r,year,month,day, rcf0 = 9, pol = 'parallel',color = "blue"):
 
     if (np.size(sigma1) > 1) & (np.size(sigma2) > 1):
         mat = np.ma.masked_where(np.array([sigma1.filled(-9999),sigma2.filled(-9999)]) == -9999,np.array([sigma1.filled(-9999),sigma2.filled(-9999)]))
-        sigma = np.nanmean(mat,axis = 0)[10:]
+        sigma = np.nanmean(mat,axis = 0)[10:]/100000. #transfor cm-1 to km-1  
         h = h1[10:]
 
     if (np.size(sigma1) == 1) & (np.size(sigma2) > 1):
-        sigma = sigma2[10:]
+        sigma = sigma2[10:]/100000. #transfor cm-1 to km-1 
         h = h2[10:]
 
     if (np.size(sigma1) > 1) & (np.size(sigma2) == 1):
-        sigma = sigma1[10:]
+        sigma = sigma1[10:]/100000. #transfor cm-1 to km-1 
         h = h1[10:]
         
     rcf = np.squeeze(np.where(h < rcf0))[-1] 
