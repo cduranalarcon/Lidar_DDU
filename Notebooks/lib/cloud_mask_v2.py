@@ -1,4 +1,5 @@
 def cloud_mask2(PPP,r,doPlot = False, th = 3, nstd=3, sm = 5, check = False, check2 = False):
+    import pylab
     from DP_simp import DP_simp
     from copy import copy
     #import simplification, pylab, sys
