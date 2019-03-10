@@ -1,3 +1,5 @@
+# USE version 4 --> Comb_LidarMRR4
+
 def Comb_LidarMRR(layers_mask, Par90_bgc, r,nstd,sm, Ze, hours):
     from DP_simp import DP_simp
     import numpy as np
@@ -273,5 +275,77 @@ def Comb_LidarMRR3(layers_mask, Par90_bgc, r,nstd,sm,times_MRR, Ze, year, month,
                 layers_mask2[h,15:][pixfin] = 3
         except:
             check = h
+        
+    return layers_mask2
+
+def Comb_LidarMRR4(layers_mask, Par90_bgc, r,nstd,sm,times_MRR, Ze, year, month, day,hours, TRES,VRES,minR_Ze):
+    from DP_simp import DP_simp
+    import numpy as np
+    from copy import copy
+    from time2epoch import time2epoch
+    import pylab
+    #print np.shape(layers_mask), np.shape(Par90_bgc), np.shape(r), np.shape(nstd), np.shape(sm), np.shape(Ze), np.shape(hours)
+    layers_mask2 = copy(layers_mask)
+    
+    for h in range(np.size(hours)):###############################################
+    #    try:
+    #if 1 == 1:
+        
+        if int((h)*TRES/60.) < 24:
+            time_lidar = time2epoch(year = year, month = month, day = day, hour = int((h)*TRES/60.),minute=int(round(60*((h)*TRES/60. - int((h)*TRES/60.)))))
+        elif int((h)*TRES/60.) == 24:
+            time_lidar = time2epoch(year = year, month = month, day = day, hour = 0,minute=0)+3600*24
+        pix_time = np.squeeze(np.where(time_lidar == times_MRR))
+        pixmask = np.squeeze(np.where(layers_mask[h,:].mask == True))[2]
+        if (np.uint64(Ze[pix_time,minR_Ze] > -18) & np.uint64(layers_mask[h,2] == 1) & np.uint64(np.nansum(layers_mask[h,:])>3)):  
+            
+            X,Y,R_,PR2 = DP_simp(r[0:pixmask],Par90_bgc[h,:][0:pixmask],nstd,sm)    
+
+            slope3 = []
+            for i in range(1,np.size(X[:])):
+                s3 = (np.log(Y[i]/Y[i-1]))/(X[i]-X[i-1])
+                slope3.append(s3)
+
+            base2 = []
+            top2 = []
+
+            base2 = X[0]
+            Ybase2 = Y[0]
+
+            for i in range(1,np.size(X)):
+                notfound  = False
+                pix = np.where(r <= X[i])    
+                if (2 in layers_mask[h,:][pix]):
+                    if np.size(np.squeeze(np.where(layers_mask[h,:][pix] == 2)))>1:
+                        top2 = r[pix][np.squeeze(np.where(layers_mask[h,:][pix] == 2))[0]]
+                    else:
+                        top2 = r[pix][np.squeeze(np.where(layers_mask[h,:][pix] == 2))]
+                    break
+                notfound  = True           
+
+            count = 0
+
+            if notfound  == True: 
+                for i in range(1,np.size(slope3)):
+                    notfound  = False
+                    if ((slope3[i] <= 0) & (slope3[i] > -0.5) & (Y[i]< Ybase2)):
+                        top2 = X[i]
+                        count = count+1
+                        if (count == 2): break
+                    else:
+                        count = 0
+                    notfound  = True
+
+            if notfound  == True:    
+                for i in range(i,np.size(X)):
+                    notfound  = False
+                    pix = np.where(r <= X[i])    
+                    if (1 in layers_mask[h,:][pix]):
+                        top2 = r[pix][np.squeeze(np.where(layers_mask[h,:][pix] == 1))[-1]]
+                        break
+                    notfound  = True    
+
+            pixfin = np.squeeze(np.where((r >= base2) & (r <= top2) & (layers_mask.mask[h,:] != True)))
+            layers_mask2[h,:][pixfin] = 3
         
     return layers_mask2
