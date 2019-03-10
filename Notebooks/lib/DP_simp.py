@@ -1,3 +1,5 @@
+# Last version 03102019, mod: limite to while iteration
+
 def DP_simp(r,AA0,nstd,sm = 5):
     import pandas as pd
     import numpy as np
@@ -16,8 +18,13 @@ def DP_simp(r,AA0,nstd,sm = 5):
     flag2[-1] = 1
 
     end = False
-
+    nlevels = 0
     while end == False:
+        
+        nlevels = nlevels + 1
+        
+        if nlevels > np.size(r)*2: end = True 
+        
         pix = np.squeeze(np.where(flag2 == 1))
 
         p1 = AA[pix[0]]
@@ -51,6 +58,7 @@ def DP_simp(r,AA0,nstd,sm = 5):
                 for i in range(np.size(flag)-1):
                     if ((flag2[i] == 1) & (flag2[i+1]== 1)):
                         flag2[i] = 2
+                        #print "1"
         else:
             for i in range(np.size(flag)-1):
                 if ((flag2[i] == 1) & (flag2[i+1]== 1)):
